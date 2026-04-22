@@ -1,108 +1,65 @@
-# Self-Pruning Neural Network (CIFAR-10)
+#  Self-Pruning Neural Network (CIFAR-10)
 
 ##  Overview
 
-This project implements a **self-pruning neural network** that learns to remove unnecessary weights during training using learnable gate parameters.
+This project implements a **self-pruning neural network** that dynamically removes unnecessary weights during training using learnable gate parameters.
 
-Unlike traditional pruning techniques applied after training, this model **dynamically prunes itself during training**, making it more efficient and adaptive.
+Unlike traditional pruning methods, this approach integrates pruning directly into the training process.
 
 ---
 
 ##  Key Idea
 
-Each weight in the network is associated with a learnable **gate parameter**:
+Each weight is associated with a learnable gate:
 
-* Gate values ∈ (0, 1) via sigmoid
-* Effective weight = `weight × gate`
-* If gate → 0 → connection is pruned
-
-This allows the network to **learn which connections are important**.
+* Gate ∈ (0, 1) via sigmoid
+* Effective weight = weight × gate
+* Gate → 0 ⇒ connection is pruned
 
 ---
 
-##  Methodology
+##  Method
 
-###  Prunable Layer
-
-A custom `PrunableLinear` layer is implemented:
-
-* Learns both weights and gate scores
-* Applies sigmoid transformation to gates
-* Multiplies weights with gates before forward pass
-
----
-
-###  Loss Function
-
-Total Loss = Classification Loss + λ × Sparsity Loss
-
-* **Classification Loss** → Cross-Entropy
-* **Sparsity Loss** → Mean of gate values
-
-This encourages the network to **reduce unnecessary connections**.
-
----
-
-###  Training Strategy
-
-A **warm-up phase** is used:
-
-* Initial epochs → only classification loss
-* Later epochs → classification + sparsity loss
-
-This stabilizes training and prevents early pruning collapse.
+* Custom `PrunableLinear` layer
+* Loss = CrossEntropy + λ × Sparsity Loss
+* Sparsity Loss = mean of gate values
+* Warm-up training (no pruning in early epochs)
 
 ---
 
 ##  Results
 
-| Lambda (λ) | Accuracy (%)       | Sparsity (%) |
-| ---------- | ------------------ | ------------ |
-| 0.01       | 47.42              | 6.30         |
-| 0.05       | 47.82              | 57.96        |
-| 0.1        | 47.94              | 60.78        |
+| Lambda (λ) | Accuracy (%) | Sparsity (%) |
+| ---------- | ------------ | ------------ |
+| 0.01       | 47.42        | 6.30         |
+| 0.05       | 47.82        | 57.96        |
+| 0.1        | 49.74        | 60.78        |
 
 ---
 
-##  Key Observations
+##  Observations
 
-* **Low λ (0.01)**
-
-  * High accuracy
-  * Minimal pruning
-
-* **Medium λ (0.05)** 
-
-  * ~58% sparsity
-  * Maintains accuracy
-  * Best trade-off
-
-* **High λ (0.1)**
-
-  * Higher sparsity
-  * Slight accuracy drop
-
- A clear **trade-off between sparsity and performance** is observed.
+* Increasing λ increases sparsity
+* λ = 0.05 achieves ~58% sparsity with minimal accuracy drop
+* Higher λ leads to more aggressive pruning
 
 ---
 
-##  Gate Distribution
+##  How to Run
 
-The distribution of gate values shows:
+### Run on Google Colab (Recommended)
 
-* Many values near **0** → pruned connections
-* Some values away from 0 → important weights
-
-This confirms successful **self-pruning behavior**.
+1. Open notebook in Google Colab
+2. Enable GPU: Runtime → Change runtime type → GPU
+3. Run all cells
 
 ---
 
-## Tech Stack
+##  Key Learnings
 
-* Python
-* PyTorch
-* NumPy
-* Matplotlib
+* L1 regularization induces sparsity
+* Neural networks can learn to prune during training
+* Trade-off exists between sparsity and accuracy
 
 ---
 
